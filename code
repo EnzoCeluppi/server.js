@@ -1,0 +1,60 @@
+const express = require('express');
+const path = require('path');
+const app = express();
+const PORT = process.env.PORT || 3000;
+const express = require('express');
+const router = express.Router();
+
+// Middleware para servir arquivos estáticos
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Middleware para processar JSON
+app.use(express.json());
+
+// Configuração de rotas
+app.use('/api/tasks', require('./routes/tasks'));
+
+// Inicie o servidor
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
+
+let tasks = [];
+
+// Obter todas as tarefas
+router.get('/', (req, res) => {
+  res.json(tasks);
+});
+
+// Criar uma nova tarefa
+router.post('/', (req, res) => {
+  const newTask = {
+    id: tasks.length + 1,
+    title: req.body.title,
+    description: req.body.description,
+    dueDate: req.body.dueDate,
+    priority: req.body.priority,
+    completed: false,
+  };
+  tasks.push(newTask);
+  res.json(newTask);
+});
+
+// Marcar tarefa como concluída
+router.put('/:id', (req, res) => {
+  const task = tasks.find(t => t.id === parseInt(req.params.id));
+  if (task) {
+    task.completed = true;
+    res.json(task);
+  } else {
+    res.status(404).json({ message: 'Task not found' });
+  }
+});
+
+// Excluir uma tarefa
+router.delete('/:id', (req, res) => {
+  tasks = tasks.filter(t => t.id !== parseInt(req.params.id));
+  res.json({ message: 'Task deleted' });
+});
+
+module.exports = router;
